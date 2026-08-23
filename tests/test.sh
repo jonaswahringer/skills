@@ -85,6 +85,29 @@ printf '\nA personal line that updates must preserve.\n' >> "$TEST_HOME/.agents/
 "$AGENTS" update >/dev/null
 assert_contains "$TEST_HOME/.agents/AGENTS.md" "A personal line that updates must preserve."
 
+# Branch archives may be cached even though update says it is downloading. A
+# fresh update request must not reuse an older response for the same branch URL.
+UPDATE_FIXTURE="$TEST_ROOT/update-fixture"
+UPDATE_HOME="$TEST_ROOT/update-home"
+mkdir -p "$UPDATE_FIXTURE/cached/agents-main" "$UPDATE_FIXTURE/latest/agents-main" "$UPDATE_FIXTURE/bin"
+tar -C "$ROOT" --exclude=.git --exclude=bin/__pycache__ -cf - . | tar -C "$UPDATE_FIXTURE/cached/agents-main" -xf -
+tar -C "$ROOT" --exclude=.git --exclude=bin/__pycache__ -cf - . | tar -C "$UPDATE_FIXTURE/latest/agents-main" -xf -
+printf 'cached\n' > "$UPDATE_FIXTURE/cached/agents-main/update-version"
+printf 'latest\n' > "$UPDATE_FIXTURE/latest/agents-main/update-version"
+tar -C "$UPDATE_FIXTURE/cached" -czf "$UPDATE_FIXTURE/cached.tar.gz" agents-main
+tar -C "$UPDATE_FIXTURE/latest" -czf "$UPDATE_FIXTURE/latest.tar.gz" agents-main
+cp "$ROOT/tests/fake-update-curl.sh" "$UPDATE_FIXTURE/bin/curl"
+chmod +x "$UPDATE_FIXTURE/bin/curl"
+HOME="$UPDATE_HOME" AGENTS_SOURCE_DIR="$UPDATE_FIXTURE/cached/agents-main" \
+  "$UPDATE_FIXTURE/cached/agents-main/install.sh" --skills nice-to-read --no-config >/dev/null
+PATH="$UPDATE_FIXTURE/bin:$PATH" \
+FAKE_UPDATE_INSTALLER="$ROOT/install.sh" \
+FAKE_UPDATE_CACHED_ARCHIVE="$UPDATE_FIXTURE/cached.tar.gz" \
+FAKE_UPDATE_LATEST_ARCHIVE="$UPDATE_FIXTURE/latest.tar.gz" \
+AGENTS_SOURCE_DIR= \
+HOME="$UPDATE_HOME" "$UPDATE_HOME/.local/bin/agents" update >/dev/null
+assert_contains "$UPDATE_HOME/.local/share/agents/source/update-version" "latest"
+
 "$AGENTS" skills --none >/dev/null
 for skill in nice-to-read commit goals work-smart-not-hard; do
   assert_missing "$TEST_HOME/.agents/skills/$skill"

@@ -872,7 +872,7 @@ doctor_command() {
 }
 
 update_command() {
-  local bootstrap tmp
+  local bootstrap cache_key tmp
   if [[ -n "${AGENTS_SOURCE_DIR:-}" ]]; then
     bootstrap="$AGENTS_SOURCE_DIR/install.sh"
     [[ -f "$bootstrap" ]] || die "AGENTS_SOURCE_DIR does not contain install.sh"
@@ -880,7 +880,8 @@ update_command() {
   else
     tmp="$(mktemp "${TMPDIR:-/tmp}/agents-bootstrap.XXXXXX")"
     trap 'rm -f "$tmp"' EXIT
-    curl -fsSL "https://raw.githubusercontent.com/${AGENTS_REPOSITORY:-jonaswahringer/agents}/${AGENTS_REF:-main}/install.sh" -o "$tmp"
+    cache_key="${tmp##*.}"
+    curl -fsSL "https://raw.githubusercontent.com/${AGENTS_REPOSITORY:-jonaswahringer/agents}/${AGENTS_REF:-main}/install.sh?update=$cache_key" -o "$tmp"
     bash "$tmp" --update "$@"
   fi
 }

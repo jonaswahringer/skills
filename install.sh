@@ -38,7 +38,8 @@ if [[ -n "$SOURCE_DIR" ]]; then
   tar -C "$SOURCE_DIR" --exclude=.git -cf - . | tar -C "$STAGE_DIR/source" -xf -
 else
   ARCHIVE="$STAGE_DIR/agents.tar.gz"
-  URL="https://github.com/$REPOSITORY/archive/refs/heads/$REF.tar.gz"
+  CACHE_KEY="${STAGE_DIR##*.}"
+  URL="https://codeload.github.com/$REPOSITORY/tar.gz/refs/heads/$REF?update=$CACHE_KEY"
   echo "Downloading agents from $REPOSITORY..."
   curl -fsSL "$URL" -o "$ARCHIVE"
   tar -xzf "$ARCHIVE" -C "$STAGE_DIR"
