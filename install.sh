@@ -40,7 +40,11 @@ else
   ARCHIVE="$STAGE_DIR/agents.tar.gz"
   CACHE_KEY="${STAGE_DIR##*.}"
   URL="https://codeload.github.com/$REPOSITORY/tar.gz/refs/heads/$REF?update=$CACHE_KEY"
-  echo "Downloading agents from $REPOSITORY..."
+  if [[ "${1:-}" == "--update" ]]; then
+    echo "Updating agents..."
+  else
+    echo "Installing agents..."
+  fi
   curl -fsSL "$URL" -o "$ARCHIVE"
   tar -xzf "$ARCHIVE" -C "$STAGE_DIR"
   EXTRACTED="$STAGE_DIR/$(basename "$REPOSITORY")-$REF"

@@ -105,8 +105,9 @@ FAKE_UPDATE_INSTALLER="$ROOT/install.sh" \
 FAKE_UPDATE_CACHED_ARCHIVE="$UPDATE_FIXTURE/cached.tar.gz" \
 FAKE_UPDATE_LATEST_ARCHIVE="$UPDATE_FIXTURE/latest.tar.gz" \
 AGENTS_SOURCE_DIR= \
-HOME="$UPDATE_HOME" "$UPDATE_HOME/.local/bin/agents" update >/dev/null
+HOME="$UPDATE_HOME" "$UPDATE_HOME/.local/bin/agents" update > "$UPDATE_FIXTURE/output.txt"
 assert_contains "$UPDATE_HOME/.local/share/agents/source/update-version" "latest"
+assert_contains "$UPDATE_FIXTURE/output.txt" "Updating agents..."
 
 "$AGENTS" skills --none >/dev/null
 for skill in nice-to-read commit goals work-smart-not-hard; do
